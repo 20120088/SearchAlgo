@@ -28,3 +28,12 @@ def read_map(file_name):
         
         return maze
             
+def encode_char(char):
+    if char == 'x': return 0
+    if char == 'S': return 255
+    if char == ' ': return 170
+    if char == 'P': return 235
+    if char == 'V': return 200
+    if char == 'O': return 220
+    if char == 'G': return 240
+    return 120 - int(char) * 9
