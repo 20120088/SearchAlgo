@@ -90,22 +90,39 @@ def find_start_goal(maze):
 
 def init_search(maze):
     start, goal = find_start_goal(maze)
-    open = [start]
+    opened = [start]
     visited = [] 
     path = []
     trace = [[[0,0] for i in range(len(maze[0]))] for j in range(len(maze))]
     iter_maze = [maze]
-    return start, goal, open, visited, path, trace, iter_maze
+    return start, goal, opened, visited, path, trace, iter_maze
+
+def dfs(maze):
+    start, goal, opened, visited, path, trace, iter_maze = init_search(maze)
+
+    def recursion(step, current, goal, opened, visited, path, trace, iter_maze):
+        visited.append(current)
+        if current == goal:
+            path = tracing(trace, goal, start)
+            new_iter_maze = copy.deepcopy(iter_maze)
+            new_iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
+            return new_iter_maze, path
+
+        for neighbor in get_neighbors(current, maze):
+            if neighbor not in visited and neighbor not in opened and maze[neighbor[0]][neighbor[1]] != 'x':
+                opened.append(neighbor)
+                trace[neighbor[0]][neighbor[1]] = current
+                new_iter_maze = copy.deepcopy(iter_maze)
+                new_iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
+                find_next = recursion(step + 1, neighbor, goal, opened, visited, path, trace, new_iter_maze)
+                if find_next is not None: return find_next
+
+        if step == 0: return 'NO'
+
+    return(recursion(0, start, goal, opened, visited, path, trace, iter_maze))
         
 def bfs(maze):
-    start, goal = find_start_goal(maze)
-
-    #initialize stack
-    opened = [start]
-    visited = []
-    path = []
-    trace = [[[0,0] for i in range(len(maze[0]))] for j in range(len(maze))]
-    iter_maze = [maze]
+    start, goal, opened, visited, path, trace, iter_maze = init_search(maze)
 
     #loop until stack is empty
     while len(opened) > 0:
@@ -126,6 +143,8 @@ def bfs(maze):
         iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
 
     return 'NO'
+
+
 
 
             
