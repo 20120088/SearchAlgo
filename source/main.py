@@ -37,3 +37,80 @@ def encode_char(char):
     if char == 'O': return 220
     if char == 'G': return 240
     return 120 - int(char) * 9
+
+def update_maze(maze, opened, visited, path, start, goal):
+    #update maze status after each iteration
+    new_maze = copy.deepcopy(maze)
+    for i in range(len(new_maze)):
+        for j in range(len(new_maze[i])):
+            if [i, j] in visited:
+                new_maze[i][j] = 'V'
+            if [i, j] in opened:
+                new_maze[i][j] = 'O'
+            if [i, j] in path:
+                new_maze[i][j] = 'P'
+            if [i, j] == start:
+                new_maze[i][j] = 'S'
+            if [i, j] == goal:
+                new_maze[i][j] = 'G'
+    return new_maze
+
+def get_neighbors(current, maze):
+    neighbors = []
+    if current[0] > 0:
+        neighbors.append([current[0] - 1, current[1]])
+    if current[0] < len(maze) - 1:
+        neighbors.append([current[0] + 1, current[1]])
+    if current[1] > 0:
+        neighbors.append([current[0], current[1] - 1])
+    if current[1] < len(maze[0]) - 1:
+        neighbors.append([current[0], current[1] + 1])
+
+    return neighbors
+
+def tracing(trace, goal, start):
+    path = []
+    current = goal
+    while current != start:
+        path.append(current)
+        current = trace[current[0]][current[1]]
+    return path
+        
+def bfs(maze):
+    start = [0, 0]
+    goal = [0, 0]
+    #find start and goal point
+    for i in range(len(maze)):
+        for j in range(len(maze[i])):
+            if maze[i][j] == 'S':
+                start = [i, j]
+            if maze[i][j] == 'G':
+                goal = [i, j]
+
+    #initialize stack
+    opened = [start]
+    visited = []
+    path = []
+    trace = [[[0,0] for i in range(len(maze[0]))] for j in range(len(maze))]
+    iter_maze = [maze]
+
+    #loop until stack is empty
+    while len(opened) > 0:
+        current = opened.pop(0)
+        visited.append(current)
+        #if reach goal
+        if current == goal:
+            path = tracing(trace, goal, start)
+            iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
+            return iter_maze, trace
+        
+        for neighbor in get_neighbors(current, maze):
+            #if neighbor is not visited and not a wall
+            if neighbor not in visited and neighbor not in opened and maze[neighbor[0]][neighbor[1]] != 'x':
+                opened.append(neighbor)
+                trace[neighbor[0]][neighbor[1]] = current
+                
+        iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
+
+    return 'NO'
+            
