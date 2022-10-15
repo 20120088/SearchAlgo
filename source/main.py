@@ -75,8 +75,8 @@ def tracing(trace, goal, start):
         path.append(current)
         current = trace[current[0]][current[1]]
     return path
-        
-def bfs(maze):
+
+def find_start_goal(maze):
     start = [0, 0]
     goal = [0, 0]
     #find start and goal point
@@ -86,6 +86,10 @@ def bfs(maze):
                 start = [i, j]
             if maze[i][j] == 'G':
                 goal = [i, j]
+    return start, goal
+        
+def bfs(maze):
+    start, goal = find_start_goal(maze)
 
     #initialize stack
     opened = [start]
@@ -102,7 +106,7 @@ def bfs(maze):
         if current == goal:
             path = tracing(trace, goal, start)
             iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
-            return iter_maze, trace
+            return iter_maze, path
         
         for neighbor in get_neighbors(current, maze):
             #if neighbor is not visited and not a wall
@@ -113,4 +117,6 @@ def bfs(maze):
         iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
 
     return 'NO'
+
+
             
