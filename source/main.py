@@ -87,6 +87,15 @@ def find_start_goal(maze):
             if maze[i][j] == 'G':
                 goal = [i, j]
     return start, goal
+
+def init_search(maze):
+    start, goal = find_start_goal(maze)
+    open = [start]
+    visited = [] 
+    path = []
+    trace = [[[0,0] for i in range(len(maze[0]))] for j in range(len(maze))]
+    iter_maze = [maze]
+    return start, goal, open, visited, path, trace, iter_maze
         
 def bfs(maze):
     start, goal = find_start_goal(maze)
