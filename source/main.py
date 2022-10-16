@@ -218,7 +218,6 @@ def ucs(maze):
             path = tracing(trace, goal, start)
             iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
             return iter_maze, path
-            break
 
         for neighbor in get_neighbors(current, maze):
             if neighbor not in visited and maze[neighbor[0]][neighbor[1]] != 'x':
@@ -230,6 +229,36 @@ def ucs(maze):
 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
 
+    return 'NO'
+
+def gbfs(maze, heuristic):
+    start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
+    f = [[eval(heuristic)([j, i], goal) for i in range(len(maze[0]))] for j in range(len(maze))]
+
+    def push(pq, new_item):
+        i = len(pq) - 1
+        while i >= 0:
+            if f[new_item[0]][new_item[1]] >= f[pq[i][0]][pq[i][1]]:
+                break
+            i -= 1
+        pq.insert(i + 1, new_item)
+
+    while len(frontier) > 0:
+        current = frontier.pop(0)
+        visited.append(current)
+        if current == goal:
+            path = tracing(trace, goal, start)
+            iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
+            return iter_maze, path
+
+        for neighbor in get_neighbors(current, maze):
+            #if neighbor is not visited and not a wall
+            if neighbor not in visited and neighbor not in frontier and maze[neighbor[0]][neighbor[1]] != 'x':
+                push(frontier, neighbor)
+                trace[neighbor[0]][neighbor[1]] = current
+
+        iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
+    
     return 'NO'
 
 cwd = os.getcwd()
