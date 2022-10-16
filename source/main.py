@@ -53,28 +53,28 @@ def update_maze(maze, opened, visited, path, start, goal):
     new_maze = copy.deepcopy(maze)
     for i in range(len(new_maze)):
         for j in range(len(new_maze[i])):
-            if [i, j] in visited:
+            if [i, j] in [x[0:2] for x in visited]:
                 new_maze[i][j] = 'V'
-            if [i, j] in opened:
+            if [i, j] in [x[0:2] for x in opened]:
                 new_maze[i][j] = 'O'
-            if [i, j] in path:
+            if [i, j] in [x[0:2] for x in path]:
                 new_maze[i][j] = 'P'
-            if [i, j] == start:
+            if [i, j] == start[0:2]:
                 new_maze[i][j] = 'S'
-            if [i, j] == goal:
+            if [i, j] == goal[0:2]:
                 new_maze[i][j] = 'G'
     return new_maze
 
 def get_neighbors(current, maze):
     neighbors = []
     if current[0] > 0:
-        neighbors.append([current[0] - 1, current[1]])
+        neighbors.append([current[0] - 1, current[1], current[2]])
     if current[0] < len(maze) - 1:
-        neighbors.append([current[0] + 1, current[1]])
+        neighbors.append([current[0] + 1, current[1], current[2]])
     if current[1] > 0:
-        neighbors.append([current[0], current[1] - 1])
+        neighbors.append([current[0], current[1] - 1, current[2]])
     if current[1] < len(maze[0]) - 1:
-        neighbors.append([current[0], current[1] + 1])
+        neighbors.append([current[0], current[1] + 1, current[2]])
 
     return neighbors
 
@@ -122,7 +122,12 @@ def save_maze(maze, folder_name, file_name):
     plt.imsave(folder_name + '/' + file_name, upscaled_maze, cmap = 'rainbow')
 
 def dfs(maze):
-    start, goal, opened, visited, path, trace, iter_maze = init_search(maze)
+    start, goal = find_start_goal(maze)
+    opened = [[start]]
+    visited = [] 
+    path = []
+    trace = [[[0, 0, 0] for i in range(len(maze[0]))] for j in range(len(maze))]
+    iter_maze = [maze]
 
     def recursion(step, current, goal, opened, visited, path, trace, iter_maze):
         visited.append(current)
@@ -146,7 +151,12 @@ def dfs(maze):
     return(recursion(0, start, goal, opened, visited, path, trace, iter_maze))
         
 def bfs(maze):
-    start, goal, opened, visited, path, trace, iter_maze = init_search(maze)
+    start, goal = find_start_goal(maze)
+    opened = [[start]]
+    visited = [] 
+    path = []
+    trace = [[[0, 0, 0] for i in range(len(maze[0]))] for j in range(len(maze))]
+    iter_maze = [maze]
 
     #loop until stack is empty
     while len(opened) > 0:
