@@ -200,13 +200,13 @@ def bfs(maze):
 
 def ucs(maze):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
-    dis = [[1000000 for i in range(len(maze[0]))] for j in range(len(maze))]
-    dis[start[0]][start[1]] = 0
+    f = [[1000000 for i in range(len(maze[0]))] for j in range(len(maze))]
+    f[start[0]][start[1]] = 0
 
     def push(pq, new_item):
         i = len(pq) - 1
         while i >= 0:
-            if dis[new_item[0]][new_item[1]] >= dis[pq[i][0]][pq[i][1]]:
+            if f[new_item[0]][new_item[1]] >= f[pq[i][0]][pq[i][1]]:
                 break
             i -= 1
         pq.insert(i + 1, new_item)
@@ -222,9 +222,9 @@ def ucs(maze):
 
         for neighbor in get_neighbors(current, maze):
             if neighbor not in visited and maze[neighbor[0]][neighbor[1]] != 'x':
-                temp_dis = dis[current[0]][current[1]] + 1
-                if temp_dis < dis[neighbor[0]][neighbor[1]]:
-                    dis[neighbor[0]][neighbor[1]] = temp_dis
+                temp_dis = f[current[0]][current[1]] + 1
+                if temp_dis < f[neighbor[0]][neighbor[1]]:
+                    f[neighbor[0]][neighbor[1]] = temp_dis
                     trace[neighbor[0]][neighbor[1]] = current
                     push(frontier, neighbor)
 
