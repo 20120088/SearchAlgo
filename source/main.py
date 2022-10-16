@@ -96,6 +96,9 @@ def manhattan_distance(a, b):
 def euclidean_distance(a, b):
     return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
+def chebychev_distance(a, b):
+    return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
+
 def sum_distance(a, b):
     return manhattan_distance(a, b) + euclidean_distance(a, b)
 
