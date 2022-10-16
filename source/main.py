@@ -110,6 +110,7 @@ def init_search(maze):
 def save_maze(maze, folder_name, file_name):
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
+        print("Folder created")
 
     encoded_maze = [list(map(encode_char, line)) for line in maze]
     upscaled_maze = upscale(encoded_maze, 100)
@@ -118,7 +119,7 @@ def save_maze(maze, folder_name, file_name):
     plt.yticks(color = 'w')
     plt.tick_params(bottom = False, left = False)
 
-    plt.imsave(file_name, upscaled_maze, cmap = 'rainbow')
+    plt.imsave(folder_name + '/' + file_name, upscaled_maze, cmap = 'rainbow')
 
 def dfs(maze):
     start, goal, opened, visited, path, trace, iter_maze = init_search(maze)
@@ -167,7 +168,8 @@ def bfs(maze):
 
     return 'NO'
 
-
-
-
-            
+cwd = os.getcwd()
+file_name = cwd + '/input/level__1/input1.txt'
+maze = read_maze(file_name)
+iter_maze, path = dfs(maze)
+save_maze(iter_maze[-1], cwd + '/output/level__1/input1', 'dfs.jpg')
