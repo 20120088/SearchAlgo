@@ -2,7 +2,7 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
-def read_map(file_name):
+def read_maze(file_name):
     with open(file_name, "r") as f:
         n = int(f.readline())
 
