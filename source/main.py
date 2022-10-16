@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 def read_maze(file_name):
     with open(file_name, "r") as f:
@@ -106,7 +107,10 @@ def init_search(maze):
     iter_maze = [maze]
     return start, goal, opened, visited, path, trace, iter_maze
 
-def save_maze(maze, file_name):
+def save_maze(maze, folder_name, file_name):
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
     encoded_maze = [list(map(encode_char, line)) for line in maze]
     upscaled_maze = upscale(encoded_maze, 100)
 
