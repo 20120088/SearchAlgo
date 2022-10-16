@@ -2,10 +2,10 @@
 xxxxxxxxxx
 x        x
 x      x x
-x      x x
-       x x
 xxxxxx x x
+     x x x
+xxxx x xSx
 x      x x
-x xxxxxxSx
+x xxxxxx x
 x        x
 xxxxxxxxxx
