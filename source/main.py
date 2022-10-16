@@ -1,4 +1,6 @@
 import copy
+import numpy as np
+import matplotlib.pyplot as plt
 
 def read_map(file_name):
     with open(file_name, "r") as f:
@@ -103,6 +105,16 @@ def init_search(maze):
     trace = [[[0,0] for i in range(len(maze[0]))] for j in range(len(maze))]
     iter_maze = [maze]
     return start, goal, opened, visited, path, trace, iter_maze
+
+def save_maze(maze, file_name):
+    encoded_maze = [list(map(encode_char, line)) for line in maze]
+    upscaled_maze = upscale(encoded_maze, 100)
+
+    plt.xticks(color = 'w')
+    plt.yticks(color = 'w')
+    plt.tick_params(bottom = False, left = False)
+
+    plt.imsave(file_name, upscaled_maze, cmap = 'rainbow')
 
 def dfs(maze):
     start, goal, opened, visited, path, trace, iter_maze = init_search(maze)
