@@ -42,14 +42,14 @@ def encode_char(char):
     if char == 'G': return 240
     return 120 - int(char) * 9
 
-def upscale(maze, scale):
+def upscale(maze, scale): #upscale maze for saving
     new_maze = np.zeros([np.shape(maze)[0] * scale, np.shape(maze)[1] * scale])
     for i in range(np.shape(maze)[0]):
         for j in range(np.shape(maze)[1]):
             new_maze[i * scale : (i + 1) * scale, j * scale : (j + 1) * scale] = maze[i][j]
     return new_maze
 
-def update_maze(maze, opened, visited, path, start, goal):
+def update_maze(maze, opened, visited, path, start, goal): 
     #update maze status after each iteration
     new_maze = copy.deepcopy(maze)
     for i in range(len(new_maze)):
@@ -70,16 +70,16 @@ def update_maze(maze, opened, visited, path, start, goal):
                 new_maze[i][j] = 'G'
     return new_maze
 
-def get_neighbors(current, maze):
+def get_neighbors(current, maze): #get neighbors of current point, f is the cost function
     neighbors = []
     if current[0] > 0:
-        neighbors.append([current[0] - 1, current[1], current[2]])
+        neighbors.append([current[0] - 1, current[1]])
     if current[0] < len(maze) - 1:
-        neighbors.append([current[0] + 1, current[1], current[2]])
+        neighbors.append([current[0] + 1, current[1]])
     if current[1] > 0:
-        neighbors.append([current[0], current[1] - 1, current[2]])
+        neighbors.append([current[0], current[1] - 1])
     if current[1] < len(maze[0]) - 1:
-        neighbors.append([current[0], current[1] + 1, current[2]])
+        neighbors.append([current[0], current[1] + 1])
 
     return neighbors
 
@@ -122,7 +122,7 @@ def find_start_goal(maze, f):
                 
     return start, goal
 
-def init_search(maze, f):
+def init_search(maze, f): #initialize value for search
     start, goal = find_start_goal(maze, f)
     opened = [start]
     visited = [] 
@@ -131,7 +131,7 @@ def init_search(maze, f):
     iter_maze = [maze]
     return start, goal, opened, visited, path, trace, iter_maze
 
-def save_maze(maze, folder_name, file_name):
+def save_maze(maze, folder_name, file_name): #save result maze to folder
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
         print("Folder created")
@@ -157,10 +157,13 @@ def dfs(maze):
             new_iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
             return new_iter_maze, path
 
+        #if current != goal:
         for neighbor in get_neighbors(current, maze):
+            #if neighbor not in visited and not a wall
             if neighbor not in visited and neighbor not in opened and maze[neighbor[0]][neighbor[1]] != 'x':
                 opened.append(neighbor)
                 trace[neighbor[0]][neighbor[1]] = current
+                #new_iter_maze for each recursion step
                 new_iter_maze = copy.deepcopy(iter_maze)
                 new_iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
                 find_next = recursion(step + 1, neighbor, goal, opened, visited, path, trace, new_iter_maze)
