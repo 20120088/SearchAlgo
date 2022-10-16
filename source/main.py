@@ -220,5 +220,5 @@ def ucs(maze):
 cwd = os.getcwd()
 file_name = cwd + '/input/level__1/input1.txt'
 maze = read_maze(file_name)
-iter_maze, path = dfs(maze)
-save_maze(iter_maze[-1], cwd + '/output/level__1/input1', 'dfs.jpg')
+iter_maze, path = ucs(maze)
+save_maze(iter_maze[-1], cwd + '/output/level__1/input1', 'ucs.jpg')
