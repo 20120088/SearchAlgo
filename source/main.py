@@ -48,23 +48,26 @@ def upscale(maze, scale):
             new_maze[i * scale : (i + 1) * scale, j * scale : (j + 1) * scale] = maze[i][j]
     return new_maze
 
-def update_maze(maze, opened, visited, path, start, goal):
+def update_maze(maze, frontier, visited, path, start, goal):
     #update maze status after each iteration
     new_maze = copy.deepcopy(maze)
     for i in range(len(new_maze)):
         for j in range(len(new_maze[i])):
-            if [i, j] in visited:
-                new_maze[i][j] = 'V'
-            if [i, j] in opened:
-                new_maze[i][j] = 'O'
-            if [i, j] in path:
+            if [i, j] in [x[0:2] for x in visited]:
+                if len(path) == 0:
+                    new_maze[i][j] = 'V'
+                else: new_maze[i][j] = ' '
+            if [i, j] in [x[0:2] for x in frontier]:
+                if len(path) == 0:
+                    new_maze[i][j] = 'O'
+                else: new_maze[i][j] = ' '
+            if [i, j] in [x[0:2] for x in path]:
                 new_maze[i][j] = 'P'
-            if [i, j] == start:
+            if [i, j] == start[0:2]:
                 new_maze[i][j] = 'S'
-            if [i, j] == goal:
+            if [i, j] == goal[0:2]:
                 new_maze[i][j] = 'G'
     return new_maze
-
 def get_neighbors(current, maze):
     neighbors = []
     if current[0] > 0:
@@ -100,12 +103,12 @@ def find_start_goal(maze):
 
 def init_search(maze):
     start, goal = find_start_goal(maze)
-    opened = [start]
+    frontier = [start]
     visited = [] 
     path = []
     trace = [[[0,0] for i in range(len(maze[0]))] for j in range(len(maze))]
     iter_maze = [maze]
-    return start, goal, opened, visited, path, trace, iter_maze
+    return start, goal, frontier, visited, path, trace, iter_maze
 
 def save_maze(maze, folder_name, file_name):
     if not os.path.exists(folder_name):
@@ -121,50 +124,96 @@ def save_maze(maze, folder_name, file_name):
 
     plt.imsave(folder_name + '/' + file_name, upscaled_maze, cmap = 'rainbow')
 
-def dfs(maze):
-    start, goal, opened, visited, path, trace, iter_maze = init_search(maze)
+def manhattan_distance(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-    def recursion(step, current, goal, opened, visited, path, trace, iter_maze):
+def euclidean_distance(a, b):
+    return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+
+def sum_distance(a, b):
+    return manhattan_distance(a, b) + euclidean_distance(a, b)
+
+def nothing(a, b):
+    return 0
+
+def dfs(maze):
+    start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
+
+    def recursion(step, current, goal, frontier, visited, path, trace, iter_maze):
         visited.append(current)
         if current == goal:
             path = tracing(trace, goal, start)
             new_iter_maze = copy.deepcopy(iter_maze)
-            new_iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
+            new_iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
             return new_iter_maze, path
 
         for neighbor in get_neighbors(current, maze):
-            if neighbor not in visited and neighbor not in opened and maze[neighbor[0]][neighbor[1]] != 'x':
-                opened.append(neighbor)
+            if neighbor not in visited and neighbor not in frontier and maze[neighbor[0]][neighbor[1]] != 'x':
+                frontier.append(neighbor)
                 trace[neighbor[0]][neighbor[1]] = current
                 new_iter_maze = copy.deepcopy(iter_maze)
-                new_iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
-                find_next = recursion(step + 1, neighbor, goal, opened, visited, path, trace, new_iter_maze)
+                new_iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
+                find_next = recursion(step + 1, neighbor, goal, frontier, visited, path, trace, new_iter_maze)
                 if find_next is not None: return find_next
 
         if step == 0: return 'NO'
 
-    return(recursion(0, start, goal, opened, visited, path, trace, iter_maze))
+    return(recursion(0, start, goal, frontier, visited, path, trace, iter_maze))
         
 def bfs(maze):
-    start, goal, opened, visited, path, trace, iter_maze = init_search(maze)
+    start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
 
     #loop until stack is empty
-    while len(opened) > 0:
-        current = opened.pop(0)
+    while len(frontier) > 0:
+        current = frontier.pop(0)
         visited.append(current)
         #if reach goal
         if current == goal:
             path = tracing(trace, goal, start)
-            iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
+            iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
             return iter_maze, path
         
         for neighbor in get_neighbors(current, maze):
             #if neighbor is not visited and not a wall
-            if neighbor not in visited and neighbor not in opened and maze[neighbor[0]][neighbor[1]] != 'x':
-                opened.append(neighbor)
+            if neighbor not in visited and neighbor not in frontier and maze[neighbor[0]][neighbor[1]] != 'x':
+                frontier.append(neighbor)
                 trace[neighbor[0]][neighbor[1]] = current
                 
-        iter_maze.append(update_maze(maze, opened, visited, path, start, goal))
+        iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
+
+    return 'NO'
+
+def ucs(maze):
+    start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
+    dis = [[1000000 for i in range(len(maze[0]))] for j in range(len(maze))]
+    dis[start[0]][start[1]] = 0
+
+    def push(pq, new_item):
+        i = len(pq) - 1
+        while i >= 0:
+            if dis[new_item[0]][new_item[1]] >= dis[pq[i][0]][pq[i][1]]:
+                break
+            i -= 1
+        pq.insert(i + 1, new_item)
+            
+    while len(frontier) > 0:
+        current = frontier.pop(0)
+        visited.append(current)
+        if current == goal: 
+            path = tracing(trace, goal, start)
+            iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
+            return iter_maze, path
+            break
+
+        for neighbor in get_neighbors(current, maze):
+            if neighbor not in visited and maze[neighbor[0]][neighbor[1]] != 'x':
+                temp_dis = dis[current[0]][current[1]] + 1
+                if temp_dis < dis[neighbor[0]][neighbor[1]]:
+                    dis[neighbor[0]][neighbor[1]] = temp_dis
+                    trace[neighbor[0]][neighbor[1]] = current
+                    push(frontier, neighbor)
+
+        iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
 
     return 'NO'
 
