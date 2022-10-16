@@ -214,6 +214,7 @@ def ucs(maze):
     while len(frontier) > 0:
         current = frontier.pop(0)
         visited.append(current)
+
         if current == goal: 
             path = tracing(trace, goal, start)
             iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
@@ -246,6 +247,7 @@ def gbfs(maze, heuristic):
     while len(frontier) > 0:
         current = frontier.pop(0)
         visited.append(current)
+
         if current == goal:
             path = tracing(trace, goal, start)
             iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
@@ -261,8 +263,42 @@ def gbfs(maze, heuristic):
     
     return 'NO'
 
+def astar(maze, heuristic):
+    start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
+    g = [[0 for i in range(len(maze[0]))] for j in range(len(maze))]
+    g[start[0]][start[1]] = 0
+    h = [[eval(heuristic)([j, i], goal) for i in range(len(maze[0]))] for j in range(len(maze))]
+
+    def push(pq, new_item):
+        i = len(pq) - 1
+        while i >= 0:
+            if g[new_item[0]][new_item[1]] + h[new_item[0]][new_item[1]] >= g[pq[i][0]][pq[i][1]] + h[pq[i][0]][pq[i][1]]:
+                break
+            i -= 1
+        pq.insert(i + 1, new_item)
+
+    while len(frontier) > 0:
+        current = frontier.pop(0)
+        visited.append(current)
+
+        if current == goal:
+            path = tracing(trace, goal, start)
+            iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
+            return iter_maze, path
+
+        for neighbor in get_neighbors(current, maze):
+            #if neighbor is not visited and not a wall
+            if neighbor not in visited and neighbor not in frontier and maze[neighbor[0]][neighbor[1]] != 'x':
+                g[neighbor[0]][neighbor[1]] = g[current[0]][current[1]] + 1
+                push(frontier, neighbor)
+                trace[neighbor[0]][neighbor[1]] = current
+                
+        iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
+    
+    return 'NO'
+
 cwd = os.getcwd()
 file_name = cwd + '/input/level__1/input1.txt'
 maze = read_maze(file_name)
-iter_maze, path = ucs(maze)
-save_maze(iter_maze[-1], cwd + '/output/level__1/input1', 'ucs.jpg')
+iter_maze, path = astar(maze, 'manhattan_distance')
+save_maze(iter_maze[-1], cwd + '/output/level__1/input1', 'astar.jpg')
