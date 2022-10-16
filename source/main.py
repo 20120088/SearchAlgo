@@ -38,6 +38,13 @@ def encode_char(char):
     if char == 'G': return 240
     return 120 - int(char) * 9
 
+def upscale(maze, scale):
+    new_maze = np.zeros([np.shape(maze)[0] * scale, np.shape(maze)[1] * scale])
+    for i in range(np.shape(maze)[0]):
+        for j in range(np.shape(maze)[1]):
+            new_maze[i * scale : (i + 1) * scale, j * scale : (j + 1) * scale] = maze[i][j]
+    return new_maze
+
 def update_maze(maze, opened, visited, path, start, goal):
     #update maze status after each iteration
     new_maze = copy.deepcopy(maze)
