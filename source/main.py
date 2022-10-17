@@ -3,34 +3,47 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import math 
+import sys
+
+no_info_search_algo = ['dfs', 'bfs', 'ucs']
+info_search_algo = ['gbfs', 'astar']
+heuristic_list = ['manhattan_distance', 'euclidean_distance', 'chebyshev_distance']
+
+all_algo = []
+all_algo.extend(no_info_search_algo)
+for algo in info_search_algo:
+    for h in heuristic_list:
+        all_algo.append(algo + '_' + h[:3])
 
 def read_maze(file_name):
-    with open(file_name, "r") as f:
-        n = int(f.readline())
+    maze = None
+    if os.path.getsize(file_name) > 0:
+        with open(file_name, "r") as f:
+            n = int(f.readline())
 
-        plus_point = [] #read list of plus point
-        for i in range(n):
-            point = [int(x) for x in f.readline().split(' ')]
-            point[2] = -point[2]
-            plus_point.append(point)
+            plus_point = [] #read list of plus point
+            for i in range(n):
+                point = [int(x) for x in f.readline().split(' ')]
+                point[2] = -point[2]
+                plus_point.append(point)
 
-        maze = [] #read maze
-        for line in f:
-            if line[-1] == '\n': line = line[:-1]
-            maze.append([x for x in line])
+            maze = [] #read maze
+            for line in f:
+                if line[-1] == '\n': line = line[:-1]
+                maze.append([x for x in line])
 
-        for point in plus_point: #embed plus point to maze
-            maze[point[0]][point[1]] = point[2]
+            for point in plus_point: #embed plus point to maze
+                maze[point[0]][point[1]] = point[2]
 
-        for i,x in enumerate(maze[0]): 
-            if x == ' ': maze[0][i] = 'G'
-        for i,x in enumerate(maze[-1]): 
-            if x == ' ': maze[-1][i] = 'G'
-        for line in maze[1:-1]:
-            if line[0] == ' ': line[0] = 'G'
-            if line[-1] == ' ': line[-1] = 'G'
-        
-        return maze
+            for i,x in enumerate(maze[0]): 
+                if x == ' ': maze[0][i] = 'G'
+            for i,x in enumerate(maze[-1]): 
+                if x == ' ': maze[-1][i] = 'G'
+            for line in maze[1:-1]:
+                if line[0] == ' ': line[0] = 'G'
+                if line[-1] == ' ': line[-1] = 'G'
+            
+    return maze
             
 def encode_char(char):
     if char == 'x': return 0
@@ -300,8 +313,41 @@ def astar(maze, heuristic):
     
     return 'NO'
 
-cwd = os.getcwd()
-file_name = cwd + '/input/level__1/input1.txt'
-maze = read_maze(file_name)
-iter_maze, path = astar(maze, 'manhattan_distance')
-save_maze(iter_maze[-1], cwd + '/output/level__1/input1', 'astar.jpg')
+def main(algo, heuristic = None):
+    cwd = os.path.dirname(os.getcwd())
+
+    input_folder = os.path.join(cwd, 'input')
+
+    for level in os.listdir(input_folder):
+        level_folder = os.path.join(input_folder, level)
+        for maze_file in os.listdir(level_folder):
+            file_name = os.path.join(level_folder, maze_file)
+            maze = read_maze(file_name)
+            if maze != None:
+                if algo in no_info_search_algo:
+                    iter_maze, path = eval(algo)(maze)
+                    output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
+                    save_maze(iter_maze[-1], output_folder, algo + '.jpg')
+                elif algo in info_search_algo:
+                    if heuristic == None:
+                        print('1 heuristic is expected (manhattan_distance, euclidean_distance, chebyshev_distance)')
+                        return
+                    if heuristic not in heuristic_list:
+                        print('Heutistic ' + heuristic + ' is not supported (manhattan_distance, euclidean_distance, chebyshev_distance are expected)')
+                        return
+                    else:
+                        iter_maze, path = eval(algo)(maze, heuristic)
+                        output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
+                        save_maze(iter_maze[-1], output_folder, algo + '_' + heuristic + '.jpg')
+                else: 
+                    print(algo + ' algorithm is not supported (dfs, bfs, ucs, gfbs, astar are expected')
+                    return
+
+if __name__ == "__main__":
+    if len(sys.argv) > 3:
+        print('Too many arguments')
+    elif len(sys.argv) == 3:
+        main(sys.argv[1], sys.argv[2])
+    elif len(sys.argv) == 2:
+        main(sys.argv[1])
+    
