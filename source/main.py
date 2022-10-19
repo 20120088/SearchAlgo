@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import os
 import math 
 import sys
+import time
 
 no_info_search_algo = ['dfs', 'bfs', 'ucs']
 info_search_algo = ['gbfs', 'astar']
@@ -51,7 +52,7 @@ def encode_char(char):
     if char == ' ': return 170
     if char == 'P': return 235
     if char == 'V': return 200
-    if char == 'O': return 220
+    if char == 'F': return 220
     if char == 'G': return 240
     return 120 - int(char) * 9
 
@@ -68,13 +69,15 @@ def update_maze(maze, frontier, visited, path, start, goal):
     for i in range(len(new_maze)):
         for j in range(len(new_maze[i])):
             if [i, j] in [x[0:2] for x in visited]:
-                if len(path) == 0:
-                    new_maze[i][j] = 'V'
-                else: new_maze[i][j] = ' '
+                new_maze[i][j] = 'V'
+                # if len(path) == 0:
+                #     new_maze[i][j] = 'V'
+                # else: new_maze[i][j] = ' '
             if [i, j] in [x[0:2] for x in frontier]:
-                if len(path) == 0:
-                    new_maze[i][j] = 'O'
-                else: new_maze[i][j] = ' '
+                new_maze[i][j] = 'F'
+                # if len(path) == 0:
+                #     new_maze[i][j] = 'F'
+                # else: new_maze[i][j] = ' '
             if [i, j] in [x[0:2] for x in path]:
                 new_maze[i][j] = 'P'
             if [i, j] == start[0:2]:
@@ -168,20 +171,19 @@ def nothing(a, b):
 def dfs(maze):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
 
+    start_time = time.time()
     def recursion(step, current, goal, frontier, visited, path, trace, iter_maze):
         visited.append(current)
         if current == goal:
             path = tracing(trace, goal, start)
             new_iter_maze = copy.deepcopy(iter_maze)
             new_iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
-            return new_iter_maze, path
+            return new_iter_maze, path, time.time() - start_time
 
-        #if current != goal:
         for neighbor in get_neighbors(current, maze):
             if neighbor not in visited and neighbor not in frontier and maze[neighbor[0]][neighbor[1]] != 'x':
                 frontier.append(neighbor)
                 trace[neighbor[0]][neighbor[1]] = current
-                #new_iter_maze for each recursion step
                 new_iter_maze = copy.deepcopy(iter_maze)
                 new_iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
                 find_next = recursion(step + 1, neighbor, goal, frontier, visited, path, trace, new_iter_maze)
@@ -194,6 +196,7 @@ def dfs(maze):
 def bfs(maze):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
 
+    start_time = time.time()
     #loop until stack is empty
     while len(frontier) > 0:
         current = frontier.pop(0)
@@ -202,7 +205,7 @@ def bfs(maze):
         if current == goal:
             path = tracing(trace, goal, start)
             iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
-            return iter_maze, path
+            return iter_maze, path, time.time() - start_time
         
         for neighbor in get_neighbors(current, maze):
             #if neighbor is not visited and not a wall
@@ -226,15 +229,15 @@ def ucs(maze):
                 break
             i -= 1
         pq.insert(i + 1, new_item)
-            
+
+    start_time = time.time()       
     while len(frontier) > 0:
         current = frontier.pop(0)
         visited.append(current)
-
         if current == goal: 
             path = tracing(trace, goal, start)
             iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
-            return iter_maze, path
+            return iter_maze, path, time.time() - start_time
 
         for neighbor in get_neighbors(current, maze):
             if neighbor not in visited and maze[neighbor[0]][neighbor[1]] != 'x':
@@ -260,14 +263,14 @@ def gbfs(maze, heuristic):
             i -= 1
         pq.insert(i + 1, new_item)
 
+    start_time = time.time()
     while len(frontier) > 0:
         current = frontier.pop(0)
         visited.append(current)
-
         if current == goal:
             path = tracing(trace, goal, start)
             iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
-            return iter_maze, path
+            return iter_maze, path, time.time() - start_time
 
         for neighbor in get_neighbors(current, maze):
             #if neighbor is not visited and not a wall
@@ -293,6 +296,7 @@ def astar(maze, heuristic):
             i -= 1
         pq.insert(i + 1, new_item)
 
+    start_time = time.time()
     while len(frontier) > 0:
         current = frontier.pop(0)
         visited.append(current)
@@ -300,7 +304,7 @@ def astar(maze, heuristic):
         if current == goal:
             path = tracing(trace, goal, start)
             iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
-            return iter_maze, path
+            return iter_maze, path, time.time() - start_time
 
         for neighbor in get_neighbors(current, maze):
             #if neighbor is not visited and not a wall
