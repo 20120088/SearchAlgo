@@ -354,4 +354,6 @@ if __name__ == "__main__":
         main(sys.argv[1], sys.argv[2])
     elif len(sys.argv) == 2:
         main(sys.argv[1])
+    else: 
+        print('1 or 2 arguments are expected (algorithm, heuristic)')
     
