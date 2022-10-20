@@ -1,4 +1,4 @@
 *.jpg
 /.ipynb_checkpoints
-/source/draft.ipynb
 /output
+source/draft.ipynb
