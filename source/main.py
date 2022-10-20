@@ -189,7 +189,7 @@ def dfs(maze):
                 find_next = recursion(step + 1, neighbor, goal, frontier, visited, path, trace, new_iter_maze)
                 if find_next is not None: return find_next
 
-        if step == 0: return 'NO', 'NO', 'NO'
+        if step == 0: return 'NO', 'NO', time.time() - start_time
 
     return(recursion(0, start, goal, frontier, visited, path, trace, iter_maze))
         
@@ -215,7 +215,7 @@ def bfs(maze):
                 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
 
-    return 'NO', 'NO', 'NO'
+    return 'NO', 'NO', time.time() - start_time
 
 def ucs(maze):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
@@ -249,7 +249,7 @@ def ucs(maze):
 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
 
-    return 'NO', 'NO', 'NO'
+    return 'NO', 'NO', time.time() - start_time
 
 def gbfs(maze, heuristic):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
@@ -280,7 +280,7 @@ def gbfs(maze, heuristic):
 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
     
-    return 'NO', 'NO', 'NO'
+    return 'NO', 'NO', time.time() - start_time
 
 def astar(maze, heuristic):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
@@ -315,7 +315,7 @@ def astar(maze, heuristic):
                 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
     
-    return 'NO', 'NO', 'NO'
+    return 'NO', 'NO', time.time() - start_time
 
 def main(algo, heuristic = None):
     cwd = os.path.dirname(os.getcwd())
@@ -328,8 +328,9 @@ def main(algo, heuristic = None):
             maze = read_maze(file_name)
             if maze != None:
                 if algo in no_info_search_algo:
-                    print('Processing {} with {}... '.format(algo, maze_file), end = '')
+                    print('Processing {} with {}... '.format(algo, maze_file))
                     iter_maze, path, exe_time = eval(algo)(maze)
+                    print(f'> Execution time: {exe_time:.2f} seconds')
                     output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
                     if iter_maze != 'NO':
                         save_maze(
@@ -337,7 +338,7 @@ def main(algo, heuristic = None):
                             output_folder, algo + '.jpg',
                             algo
                         )
-                        print(f'{text_color["success"]}> Path saved {text_color["end"]}', end = '')
+                        print(f'{text_color["success"]}> Path saved {text_color["end"]}')
                         save_cost(
                             len(path), output_folder, algo + '.txt'
                         )
@@ -353,8 +354,9 @@ def main(algo, heuristic = None):
                         print('Heutistic ' + heuristic + ' is not supported (manhattan_distance, euclidean_distance, chebyshev_distance are expected)')
                         return
                     else:
-                        print('Processing {} by {} with {}... '.format(algo, heuristic, maze_file), end = '')
+                        print('Processing {} by {} with {}... '.format(algo, heuristic, maze_file))
                         iter_maze, path, exe_time = eval(algo)(maze, heuristic)
+                        print(f'> Execution time: {exe_time:.2f} seconds')
                         output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
                         if iter_maze != 'NO':
                             save_maze(
@@ -362,7 +364,7 @@ def main(algo, heuristic = None):
                                 output_folder, algo + '_' + heuristic + '.jpg',
                                 algo, ' with ' + heuristic
                             )
-                            print(f'{text_color["success"]}> Path saved {text_color["end"]}', end = '')
+                            print(f'{text_color["success"]}> Path saved {text_color["end"]}')
                             save_cost(
                                 len(path), output_folder, algo + '_' + heuristic + '.txt'
                             )
@@ -374,7 +376,6 @@ def main(algo, heuristic = None):
                 else: 
                     print(algo + ' algorithm is not supported (dfs, bfs, ucs, gfbs, astar are expected')
                     return
-    print('Done ' + algo)
 
 if __name__ == "__main__":
     if len(sys.argv) > 3:
