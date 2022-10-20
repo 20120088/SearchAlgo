@@ -5,6 +5,7 @@ import os
 import math 
 import sys
 import time
+import threading
 
 no_info_search_algo = ['dfs', 'bfs', 'ucs']
 info_search_algo = ['gbfs', 'astar']
@@ -152,6 +153,15 @@ def save_cost(cost, folder_name, file_name):
 
     with open(folder_name + '/' + file_name, 'w') as f:
         f.write(str(cost))
+
+def status(stop):
+    while True:
+        status = ['.    ', '..   ', '...  ', '.... ']
+        for stat in status:
+                print('\rProcessing' + stat, end = '')
+                time.sleep(0.5)
+        if stop():
+                break
 
 def manhattan_distance(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
@@ -336,10 +346,7 @@ def main(algo, heuristic = None):
             maze = read_maze(file_name) 
             if maze != None: #If file_name contains a maze
                 if algo in no_info_search_algo:
-                    print('Processing {} with {}... '.format(algo, maze_file))
                     iter_maze, path, exe_time = eval(algo)(maze)
-
-                    print(f'> Execution time: {exe_time:.2f} seconds')
                     output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
 
                     if iter_maze != 'NO':
@@ -348,17 +355,14 @@ def main(algo, heuristic = None):
                             output_folder, algo + '.jpg',
                             algo
                         )
-                        print(f'{text_color["success"]}> Path saved {text_color["end"]}')
 
                         save_cost(
                             len(path), output_folder, algo + '.txt'
                         )
-                        print(f'{text_color["success"]}> Cost saved {text_color["end"]}')
                         
                         results.append(f'{len(path)} steps - {exe_time:.2f}s')
                     else: 
                         save_cost('NO', output_folder, algo + '.txt')
-                        print(f'{text_color["fail"]}> No path found {text_color["end"]}')
                         results.append(f'NO - {exe_time:.2f}s')
                 elif algo in info_search_algo:
                     if heuristic == None:
@@ -368,10 +372,7 @@ def main(algo, heuristic = None):
                         print('Heutistic ' + heuristic + ' is not supported (manhattan_distance, euclidean_distance, chebyshev_distance are expected)')
                         return
                     else:
-                        print('Processing {} by {} with {}... '.format(algo, heuristic, maze_file))
                         iter_maze, path, exe_time = eval(algo)(maze, heuristic)
-                        
-                        print(f'> Execution time: {exe_time:.2f} seconds')
                         output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
 
                         if iter_maze != 'NO':
@@ -379,26 +380,31 @@ def main(algo, heuristic = None):
                                 iter_maze[-1], len(path), exe_time,
                                 output_folder, algo + '_' + heuristic + '.jpg',
                                 algo, ' with ' + heuristic
-                            )
-                            print(f'{text_color["success"]}> Path saved {text_color["end"]}')
+                            )                            
 
                             save_cost(
                                 len(path), output_folder, algo + '_' + heuristic + '.txt'
-                            )
-                            print(f'{text_color["success"]}> Cost saved {text_color["end"]}')
+                            )                
 
-                            results.append(f'{len(path)}steps - {exe_time:.2f}s')
+                            results.append(f'{len(path)} steps - {exe_time:.2f}s')
                         else: 
                             save_cost('NO', output_folder, algo + '_' + heuristic + '.txt')
-                            print(f'{text_color["fail"]}> No path found {text_color["end"]}')
                             results.append(f'NO - {exe_time:.2f}s')
 
                 else: 
                     print(algo + ' algorithm is not supported (dfs, bfs, ucs, gfbs, astar are expected')
                     return
+    
     write_to_table(algo, heuristic, results)
+    if (algo in info_search_algo):
+        print(f'\r{text_color["success"]}Done {algo} with {heuristic}{text_color["end"]}')
+    else: print(f'\r{text_color["success"]}Done {algo}{text_color["end"]}')
 
 if __name__ == "__main__":
+    stop_threads = False
+    t1 = threading.Thread(target = status, args =(lambda : stop_threads, ))
+    t1.start()
+
     if len(sys.argv) > 3:
         print('Too many arguments')
     elif len(sys.argv) == 3:
@@ -407,4 +413,7 @@ if __name__ == "__main__":
         main(sys.argv[1])
     else: 
         print('1 or 2 arguments are expected (algorithm, heuristic)')
+
+    stop_threads = True
+    t1.join()
     
