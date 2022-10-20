@@ -142,7 +142,7 @@ def init_search(maze):
     iter_maze = [maze]
     return start, goal, frontier, visited, path, trace, iter_maze
 
-def save_maze(maze, folder_name, file_name): #save result maze to folder
+def save_maze(maze, step, exe_time, folder_name, file_name, algo, heuristic = ''): #save result maze to folder
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
         print("Folder created")
@@ -150,9 +150,10 @@ def save_maze(maze, folder_name, file_name): #save result maze to folder
     encoded_maze = [list(map(encode_char, line)) for line in maze]
     upscaled_maze = upscale(encoded_maze, 100)
 
-    plt.xticks(color = 'w')
-    plt.yticks(color = 'w')
-    plt.tick_params(bottom = False, left = False)
+    # plt.xticks(color = 'w')
+    # plt.yticks(color = 'w')
+    # plt.tick_params(bottom = False, left = False)
+    plt.title('{}{}\n{} steps, {:.2f} seconds'.format(algo, heuristic, step, exe_time))
 
     plt.imsave(folder_name + '/' + file_name, upscaled_maze, cmap = 'rainbow')
 
@@ -319,7 +320,6 @@ def astar(maze, heuristic):
 
 def main(algo, heuristic = None):
     cwd = os.path.dirname(os.getcwd())
-
     input_folder = os.path.join(cwd, 'input')
 
     for level in os.listdir(input_folder):
@@ -329,9 +329,13 @@ def main(algo, heuristic = None):
             maze = read_maze(file_name)
             if maze != None:
                 if algo in no_info_search_algo:
-                    iter_maze, path = eval(algo)(maze)
+                    iter_maze, path, exe_time = eval(algo)(maze)
                     output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
-                    save_maze(iter_maze[-1], output_folder, algo + '.jpg')
+                    save_maze(
+                        iter_maze[-1], len(path), exe_time,
+                        output_folder, algo + '.jpg',
+                        algo
+                    )
                 elif algo in info_search_algo:
                     if heuristic == None:
                         print('1 heuristic is expected (manhattan_distance, euclidean_distance, chebyshev_distance)')
@@ -340,9 +344,13 @@ def main(algo, heuristic = None):
                         print('Heutistic ' + heuristic + ' is not supported (manhattan_distance, euclidean_distance, chebyshev_distance are expected)')
                         return
                     else:
-                        iter_maze, path = eval(algo)(maze, heuristic)
+                        iter_maze, path, time = eval(algo)(maze, heuristic)
                         output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
-                        save_maze(iter_maze[-1], output_folder, algo + '_' + heuristic + '.jpg')
+                        save_maze(
+                            iter_maze[-1], len(path), exe_time,
+                            output_folder, algo + '_' + heuristic + '.jpg',
+                            algo, ' with ' + heuristic
+                        )
                 else: 
                     print(algo + ' algorithm is not supported (dfs, bfs, ucs, gfbs, astar are expected')
                     return
