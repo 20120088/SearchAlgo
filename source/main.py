@@ -168,6 +168,13 @@ def chebyshev_distance(a, b):
 def nothing(a, b):
     return 0
 
+def write_to_table(algo, h, results):
+    with open('table.csv', 'a') as f:
+        f.write('{},{}'.format(algo, h))
+        for res in results:
+            f.write(',{}'.format(res))
+        f.write('\n')
+
 def dfs(maze):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
 
@@ -321,17 +328,20 @@ def main(algo, heuristic = None):
     cwd = os.path.dirname(os.getcwd())
     input_folder = os.path.join(cwd, 'input')
 
-    for level in os.listdir(input_folder):
-        level_folder = os.path.join(input_folder, level)
-        for maze_file in os.listdir(level_folder):
+    results = [] #for print results table after run run.sh
+    for level in os.listdir(input_folder): #iter levels folder
+        level_folder = os.path.join(input_folder, level) 
+        for maze_file in os.listdir(level_folder): #iter inputs in level folder
             file_name = os.path.join(level_folder, maze_file)
-            maze = read_maze(file_name)
-            if maze != None:
+            maze = read_maze(file_name) 
+            if maze != None: #If file_name contains a maze
                 if algo in no_info_search_algo:
                     print('Processing {} with {}... '.format(algo, maze_file))
                     iter_maze, path, exe_time = eval(algo)(maze)
+
                     print(f'> Execution time: {exe_time:.2f} seconds')
                     output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
+
                     if iter_maze != 'NO':
                         save_maze(
                             iter_maze[-1], len(path), exe_time,
@@ -339,13 +349,17 @@ def main(algo, heuristic = None):
                             algo
                         )
                         print(f'{text_color["success"]}> Path saved {text_color["end"]}')
+
                         save_cost(
                             len(path), output_folder, algo + '.txt'
                         )
                         print(f'{text_color["success"]}> Cost saved {text_color["end"]}')
+                        
+                        results.append(f'{len(path)} steps - {exe_time:.2f}s')
                     else: 
                         save_cost('NO', output_folder, algo + '.txt')
                         print(f'{text_color["fail"]}> No path found {text_color["end"]}')
+                        results.append(f'NO - {exe_time:.2f}s')
                 elif algo in info_search_algo:
                     if heuristic == None:
                         print('1 heuristic is expected (manhattan_distance, euclidean_distance, chebyshev_distance)')
@@ -356,8 +370,10 @@ def main(algo, heuristic = None):
                     else:
                         print('Processing {} by {} with {}... '.format(algo, heuristic, maze_file))
                         iter_maze, path, exe_time = eval(algo)(maze, heuristic)
+                        
                         print(f'> Execution time: {exe_time:.2f} seconds')
                         output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
+
                         if iter_maze != 'NO':
                             save_maze(
                                 iter_maze[-1], len(path), exe_time,
@@ -365,17 +381,22 @@ def main(algo, heuristic = None):
                                 algo, ' with ' + heuristic
                             )
                             print(f'{text_color["success"]}> Path saved {text_color["end"]}')
+
                             save_cost(
                                 len(path), output_folder, algo + '_' + heuristic + '.txt'
                             )
                             print(f'{text_color["success"]}> Cost saved {text_color["end"]}')
+
+                            results.append(f'{len(path)}steps - {exe_time:.2f}s')
                         else: 
                             save_cost('NO', output_folder, algo + '_' + heuristic + '.txt')
                             print(f'{text_color["fail"]}> No path found {text_color["end"]}')
+                            results.append(f'NO - {exe_time:.2f}s')
 
                 else: 
                     print(algo + ' algorithm is not supported (dfs, bfs, ucs, gfbs, astar are expected')
                     return
+    write_to_table(algo, heuristic, results)
 
 if __name__ == "__main__":
     if len(sys.argv) > 3:
