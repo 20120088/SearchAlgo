@@ -10,4 +10,3 @@ python main.py astar manhattan_distance
 python main.py astar euclidean_distance
 python main.py astar chebyshev_distance
 python print_table.py
-echo "Finish"
