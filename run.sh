@@ -1,5 +1,5 @@
 cd source
-# python main.py dfs
+python main.py dfs
 python main.py bfs
 python main.py ucs
 python main.py gbfs manhattan_distance
