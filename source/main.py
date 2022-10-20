@@ -162,6 +162,9 @@ def euclidean_distance(a, b):
 def sum_distance(a, b):
     return manhattan_distance(a, b) + euclidean_distance(a, b)
 
+def chebyshev_distance(a, b):
+    return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
+
 def nothing(a, b):
     return 0
 
@@ -351,7 +354,7 @@ def main(algo, heuristic = None):
                         return
                     else:
                         print('Processing {} by {} with {}... '.format(algo, heuristic, maze_file), end = '')
-                        iter_maze, path, time = eval(algo)(maze, heuristic)
+                        iter_maze, path, exe_time = eval(algo)(maze, heuristic)
                         output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
                         if iter_maze != 'NO':
                             save_maze(
@@ -371,6 +374,7 @@ def main(algo, heuristic = None):
                 else: 
                     print(algo + ' algorithm is not supported (dfs, bfs, ucs, gfbs, astar are expected')
                     return
+    print('Done ' + algo)
 
 if __name__ == "__main__":
     if len(sys.argv) > 3:
