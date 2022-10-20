@@ -9,6 +9,11 @@ import time
 no_info_search_algo = ['dfs', 'bfs', 'ucs']
 info_search_algo = ['gbfs', 'astar']
 heuristic_list = ['manhattan_distance', 'euclidean_distance', 'chebyshev_distance']
+text_color = {
+    'success': '\033[92m',
+    'fail': '\033[91m',
+    'end': '\033[0m',
+}
 
 all_algo = []
 all_algo.extend(no_info_search_algo)
@@ -106,21 +111,6 @@ def tracing(trace, goal, start):
         current = trace[current[0]][current[1]]
     return path
 
-def manhattan_distance(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
-def euclidean_distance(a, b):
-    return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
-
-def chebychev_distance(a, b):
-    return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
-
-def sum_distance(a, b):
-    return manhattan_distance(a, b) + euclidean_distance(a, b)
-
-def nothing(a, b):
-    return 0
-
 def find_start_goal(maze):
     start = [0, 0]
     goal = [0, 0]
@@ -145,7 +135,6 @@ def init_search(maze):
 def save_maze(maze, step, exe_time, folder_name, file_name, algo, heuristic = ''): #save result maze to folder
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
-        print("Folder created")
 
     encoded_maze = [list(map(encode_char, line)) for line in maze]
     upscaled_maze = upscale(encoded_maze, 100)
@@ -156,6 +145,13 @@ def save_maze(maze, step, exe_time, folder_name, file_name, algo, heuristic = ''
     plt.title('{}{}\n{} steps, {:.2f} seconds'.format(algo, heuristic, step, exe_time))
 
     plt.imsave(folder_name + '/' + file_name, upscaled_maze, cmap = 'rainbow')
+
+def save_cost(cost, folder_name, file_name):
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+    with open(folder_name + '/' + file_name, 'w') as f:
+        f.write(str(cost))
 
 def manhattan_distance(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
@@ -190,7 +186,7 @@ def dfs(maze):
                 find_next = recursion(step + 1, neighbor, goal, frontier, visited, path, trace, new_iter_maze)
                 if find_next is not None: return find_next
 
-        if step == 0: return 'NO'
+        if step == 0: return 'NO', 'NO', 'NO'
 
     return(recursion(0, start, goal, frontier, visited, path, trace, iter_maze))
         
@@ -216,7 +212,7 @@ def bfs(maze):
                 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
 
-    return 'NO'
+    return 'NO', 'NO', 'NO'
 
 def ucs(maze):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
@@ -250,7 +246,7 @@ def ucs(maze):
 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
 
-    return 'NO'
+    return 'NO', 'NO', 'NO'
 
 def gbfs(maze, heuristic):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
@@ -281,7 +277,7 @@ def gbfs(maze, heuristic):
 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
     
-    return 'NO'
+    return 'NO', 'NO', 'NO'
 
 def astar(maze, heuristic):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
@@ -316,7 +312,7 @@ def astar(maze, heuristic):
                 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
     
-    return 'NO'
+    return 'NO', 'NO', 'NO'
 
 def main(algo, heuristic = None):
     cwd = os.path.dirname(os.getcwd())
@@ -329,13 +325,23 @@ def main(algo, heuristic = None):
             maze = read_maze(file_name)
             if maze != None:
                 if algo in no_info_search_algo:
+                    print('Processing {} with {}... '.format(algo, maze_file), end = '')
                     iter_maze, path, exe_time = eval(algo)(maze)
                     output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
-                    save_maze(
-                        iter_maze[-1], len(path), exe_time,
-                        output_folder, algo + '.jpg',
-                        algo
-                    )
+                    if iter_maze != 'NO':
+                        save_maze(
+                            iter_maze[-1], len(path), exe_time,
+                            output_folder, algo + '.jpg',
+                            algo
+                        )
+                        print(f'{text_color["success"]}> Path saved {text_color["end"]}', end = '')
+                        save_cost(
+                            len(path), output_folder, algo + '.txt'
+                        )
+                        print(f'{text_color["success"]}> Cost saved {text_color["end"]}')
+                    else: 
+                        save_cost('NO', output_folder, algo + '.txt')
+                        print(f'{text_color["fail"]}> No path found {text_color["end"]}')
                 elif algo in info_search_algo:
                     if heuristic == None:
                         print('1 heuristic is expected (manhattan_distance, euclidean_distance, chebyshev_distance)')
@@ -344,13 +350,24 @@ def main(algo, heuristic = None):
                         print('Heutistic ' + heuristic + ' is not supported (manhattan_distance, euclidean_distance, chebyshev_distance are expected)')
                         return
                     else:
+                        print('Processing {} by {} with {}... '.format(algo, heuristic, maze_file), end = '')
                         iter_maze, path, time = eval(algo)(maze, heuristic)
                         output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
-                        save_maze(
-                            iter_maze[-1], len(path), exe_time,
-                            output_folder, algo + '_' + heuristic + '.jpg',
-                            algo, ' with ' + heuristic
-                        )
+                        if iter_maze != 'NO':
+                            save_maze(
+                                iter_maze[-1], len(path), exe_time,
+                                output_folder, algo + '_' + heuristic + '.jpg',
+                                algo, ' with ' + heuristic
+                            )
+                            print(f'{text_color["success"]}> Path saved {text_color["end"]}', end = '')
+                            save_cost(
+                                len(path), output_folder, algo + '_' + heuristic + '.txt'
+                            )
+                            print(f'{text_color["success"]}> Cost saved {text_color["end"]}')
+                        else: 
+                            save_cost('NO', output_folder, algo + '_' + heuristic + '.txt')
+                            print(f'{text_color["fail"]}> No path found {text_color["end"]}')
+
                 else: 
                     print(algo + ' algorithm is not supported (dfs, bfs, ucs, gfbs, astar are expected')
                     return
