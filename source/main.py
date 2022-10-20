@@ -398,7 +398,7 @@ def main(algo, heuristic = None):
     write_to_table(algo, heuristic, results)
     if (algo in info_search_algo):
         print(f'\r{text_color["success"]}Done {algo} with {heuristic}{text_color["end"]}')
-    else: print(f'\r{text_color["success"]}Done {algo}{text_color["end"]}')
+    else: print(f'\r{text_color["success"]}Done {algo}     {text_color["end"]}')
 
 if __name__ == "__main__":
     stop_threads = False
