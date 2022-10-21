@@ -161,6 +161,7 @@ def status(stop):
                 print('\rProcessing' + stat, end = '')
                 time.sleep(0.5)
         if stop():
+                print('\r')
                 break
 
 def manhattan_distance(a, b):
@@ -335,35 +336,28 @@ def astar(maze, heuristic):
     return 'NO', 'NO', time.time() - start_time
 
 def main(algo, heuristic = None):
-    cwd = os.path.dirname(os.getcwd())
-    input_folder = os.path.join(cwd, 'input')
+    if algo in no_info_search_algo or algo in info_search_algo:
+        cwd = os.path.dirname(os.getcwd())
+        input_folder = os.path.join(cwd, 'input/level__1')
 
-    results = [] #for print results table after run run.sh
-    for level in os.listdir(input_folder): #iter levels folder
-        level_folder = os.path.join(input_folder, level) 
-        for maze_file in os.listdir(level_folder): #iter inputs in level folder
-            file_name = os.path.join(level_folder, maze_file)
+        results = [] #for print results table after run run.sh
+        for maze_file in os.listdir(input_folder): #iter inputs in level folder
+            file_name = os.path.join(input_folder, maze_file)
             maze = read_maze(file_name) 
             if maze != None: #If file_name contains a maze
+                output_folder = os.path.join(cwd, 'output/level__1', maze_file.split('.')[0])
+                
                 if algo in no_info_search_algo:
                     iter_maze, path, exe_time = eval(algo)(maze)
-                    output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
 
                     if iter_maze != 'NO':
-                        save_maze(
-                            iter_maze[-1], len(path), exe_time,
-                            output_folder, algo + '.jpg',
-                            algo
-                        )
-
-                        save_cost(
-                            len(path), output_folder, algo + '.txt'
-                        )
-                        
+                        save_maze(iter_maze[-1], len(path), exe_time,output_folder, algo + '.jpg', algo)
+                        save_cost(len(path), output_folder, algo + '.txt')
                         results.append(f'{len(path)} steps - {exe_time:.2f}s')
                     else: 
                         save_cost('NO', output_folder, algo + '.txt')
                         results.append(f'NO - {exe_time:.2f}s')
+
                 elif algo in info_search_algo:
                     if heuristic == None:
                         print('1 heuristic is expected (manhattan_distance, euclidean_distance, chebyshev_distance)')
@@ -373,29 +367,19 @@ def main(algo, heuristic = None):
                         return
                     else:
                         iter_maze, path, exe_time = eval(algo)(maze, heuristic)
-                        output_folder = os.path.join(cwd, 'output', level, maze_file.split('.')[0])
-
                         if iter_maze != 'NO':
-                            save_maze(
-                                iter_maze[-1], len(path), exe_time,
-                                output_folder, algo + '_' + heuristic + '.jpg',
-                                algo, ' with ' + heuristic
-                            )                            
-
-                            save_cost(
-                                len(path), output_folder, algo + '_' + heuristic + '.txt'
-                            )                
-
+                            save_maze(iter_maze[-1], len(path), exe_time, output_folder, algo + '_' + heuristic + '.jpg', algo, ' with ' + heuristic)                            
+                            save_cost(len(path), output_folder, algo + '_' + heuristic + '.txt')               
                             results.append(f'{len(path)} steps - {exe_time:.2f}s')
                         else: 
                             save_cost('NO', output_folder, algo + '_' + heuristic + '.txt')
                             results.append(f'NO - {exe_time:.2f}s')
-
                 else: 
                     print(algo + ' algorithm is not supported (dfs, bfs, ucs, gfbs, astar are expected')
                     return
+        
+        write_to_table(algo, heuristic, results)
     
-    write_to_table(algo, heuristic, results)
     if (algo in info_search_algo):
         print(f'\r{text_color["success"]}Done {algo} with {heuristic}{text_color["end"]}')
     else: print(f'\r{text_color["success"]}Done {algo}       {text_color["end"]}')
