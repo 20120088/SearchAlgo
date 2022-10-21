@@ -2,12 +2,13 @@ table = open('table.csv', 'r').readlines()
 header = table[0][:-1].split(',')
 
 def print_line():
-    print(' ', end = '')
-    for i in range(37 + 23 * len(header[2:])): print('-', end='')
+    print('+' + '-'*14 + '+' + '-'*22 + '+', end='')
+    for h in header[2:]:
+        print('-'*22 + '+', end='')
     print()
 
 def print_row(row):
-    print('|  {:<12}|| {:<20}'.format(row[0], row[1]),end='')
+    print('|  {:<12}|  {:<20}'.format(row[0], row[1]),end='')
     for h in row[2:]:
         print('|  {:<20}'.format(h), end='')
     print('|')
