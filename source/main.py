@@ -153,7 +153,6 @@ def status(stop):
                 print('\rProcessing' + stat, end = '')
                 time.sleep(0.5)
         if stop():
-                print('\r')
                 break
 
 def manhattan_distance(a, b):
@@ -382,8 +381,8 @@ def main(algo, heuristic = None):
         write_to_table(algo, heuristic, results)
     
     if (algo in info_search_algo):
-        print(f'\r{text_color["success"]}Done {algo} with {heuristic}{text_color["end"]}')
-    else: print(f'\r{text_color["success"]}Done {algo}       {text_color["end"]}')
+        print(f'\rDone {algo} with {heuristic}')
+    else: print(f'\rDone {algo}               ')
 
 if __name__ == "__main__":
     if len(sys.argv) > 3:
