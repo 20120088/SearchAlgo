@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import animation
 import os
 from math import sqrt 
 import sys
@@ -177,7 +178,7 @@ def write_to_table(algo, h, results):
             f.write(',{}'.format(res))
         f.write('\n')
 
-def video_save(iter_maze, folder_name, file_name):
+def save_video(iter_maze, folder_name, file_name):
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
 
@@ -203,7 +204,7 @@ def video_save(iter_maze, folder_name, file_name):
     anim = animation.FuncAnimation(fig, func = imaze, init_func = init, frames = range(1, len(iter_maze)), interval = 50, repeat = False)
 
     writervideo = animation.FFMpegWriter(fps=20)
-    anim.save(f'{folder_name}/{file_name}.mp4', writer = writervideo)
+    anim.save(f'{folder_name}/{file_name}', writer = writervideo)
 
 def dfs(maze):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
@@ -379,7 +380,8 @@ def main(algo, heuristic = None):
                     iter_maze, path, exe_time = eval(algo)(maze)
 
                     if path != 'NO':
-                        save_maze(iter_maze[-1], len(path), exe_time,output_folder, algo + '.jpg', algo)
+                        # save_maze(iter_maze[-1], len(path), exe_time,output_folder, algo + '.jpg', algo)
+                        save_video(iter_maze, output_folder, algo + '.mp4')
                         save_cost(len(path), output_folder, algo + '.txt')
                         results.append(f'{len(path)} steps - {exe_time:.2f}s')
                     else: 
@@ -396,8 +398,9 @@ def main(algo, heuristic = None):
                     else:
                         iter_maze, path, exe_time = eval(algo)(maze, heuristic)
                         if path != 'NO':
-                            save_maze(iter_maze[-1], len(path), exe_time, output_folder, algo + '_' + heuristic + '.jpg', algo, ' with ' + heuristic)                            
-                            save_cost(len(path), output_folder, algo + '_' + heuristic + '.txt')               
+                            # save_maze(iter_maze[-1], len(path), exe_time, output_folder, algo + '_' + heuristic + '.jpg', algo, ' with ' + heuristic)                            
+                            save_video(iter_maze, output_folder, algo + '_' + heuristic[:3] + '.mp4')
+                            save_cost(len(path), output_folder, algo + '_' + heuristic[:3] + '.txt')               
                             results.append(f'{len(path)} steps - {exe_time:.2f}s')
                         else: 
                             save_cost('NO', output_folder, algo + '_' + heuristic + '.txt')
