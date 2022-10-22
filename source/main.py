@@ -386,19 +386,21 @@ def main(algo, heuristic = None):
     else: print(f'\r{text_color["success"]}Done {algo}       {text_color["end"]}')
 
 if __name__ == "__main__":
-    stop_threads = False
-    t1 = threading.Thread(target = status, args =(lambda : stop_threads, ))
-    t1.start()
-
     if len(sys.argv) > 3:
         print('Too many arguments')
-    elif len(sys.argv) == 3:
-        main(sys.argv[1], sys.argv[2])
-    elif len(sys.argv) == 2:
-        main(sys.argv[1])
-    else: 
+    elif len(sys.argv) <= 1:
         print('1 or 2 arguments are expected (algorithm, heuristic)')
+    else:
+        stop_threads = False
+        t1 = threading.Thread(target = status, args =(lambda : stop_threads, ))
+        t1.start()
 
-    stop_threads = True
-    t1.join()
+        if len(sys.argv) == 3:
+            main(sys.argv[1], sys.argv[2])
+        elif len(sys.argv) == 2:
+            main(sys.argv[1])
+
+        stop_threads = True
+        t1.join()
+            
     
