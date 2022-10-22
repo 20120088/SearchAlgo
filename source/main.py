@@ -2,7 +2,7 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import math 
+from math import sqrt 
 import sys
 import time
 import threading
@@ -76,21 +76,14 @@ def update_maze(maze, frontier, visited, path, start, goal):
         for j in range(len(new_maze[i])):
             if [i, j] in [x[0:2] for x in visited]:
                 new_maze[i][j] = 'V'
-                # if len(path) == 0:
-                #     new_maze[i][j] = 'V'
-                # else: new_maze[i][j] = ' '
             if [i, j] in [x[0:2] for x in frontier]:
                 new_maze[i][j] = 'F'
-                # if len(path) == 0:
-                #     new_maze[i][j] = 'F'
-                # else: new_maze[i][j] = ' '
             if [i, j] in [x[0:2] for x in path]:
                 new_maze[i][j] = 'P'
             if [i, j] == start[0:2]:
                 new_maze[i][j] = 'S'
-            if [i, j] == goal[0:2]:
-                new_maze[i][j] = 'G'
     return new_maze
+
 def get_neighbors(current, maze):
     neighbors = []
     if current[0] > 0:
@@ -101,7 +94,6 @@ def get_neighbors(current, maze):
         neighbors.append([current[0], current[1] - 1])
     if current[1] < len(maze[0]) - 1:
         neighbors.append([current[0], current[1] + 1])
-
     return neighbors
 
 def tracing(trace, goal, start):
@@ -143,7 +135,7 @@ def save_maze(maze, step, exe_time, folder_name, file_name, algo, heuristic = ''
     # plt.xticks(color = 'w')
     # plt.yticks(color = 'w')
     # plt.tick_params(bottom = False, left = False)
-    plt.title('{}{}\n{} steps, {:.2f} seconds'.format(algo, heuristic, step, exe_time))
+    # plt.title('{}{}\n{} steps, {:.2f} seconds'.format(algo, heuristic, step, exe_time))
 
     plt.imsave(folder_name + '/' + file_name, upscaled_maze, cmap = 'rainbow')
 
@@ -168,7 +160,7 @@ def manhattan_distance(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 def euclidean_distance(a, b):
-    return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+    return sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
 def sum_distance(a, b):
     return manhattan_distance(a, b) + euclidean_distance(a, b)
@@ -207,7 +199,7 @@ def dfs(maze):
                 find_next = recursion(step + 1, neighbor, goal, frontier, visited, path, trace, new_iter_maze)
                 if find_next is not None: return find_next
 
-        if step == 0: return 'NO', 'NO', time.time() - start_time
+        if step == 0: return iter_maze, 'NO', time.time() - start_time
 
     return(recursion(0, start, goal, frontier, visited, path, trace, iter_maze))
         
@@ -233,7 +225,7 @@ def bfs(maze):
                 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
 
-    return 'NO', 'NO', time.time() - start_time
+    return iter_maze, 'NO', time.time() - start_time
 
 def ucs(maze):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
@@ -260,27 +252,23 @@ def ucs(maze):
         for neighbor in get_neighbors(current, maze):
             if neighbor not in visited and maze[neighbor[0]][neighbor[1]] != 'x':
                 temp_dis = f[current[0]][current[1]] + 1
-                if temp_dis < f[neighbor[0]][neighbor[1]]:
+                if neighbor in frontier:
+                    if temp_dis < f[neighbor[0]][neighbor[1]]:
+                        f[neighbor[0]][neighbor[1]] = temp_dis
+                        trace[neighbor[0]][neighbor[1]] = current
+                else:
                     f[neighbor[0]][neighbor[1]] = temp_dis
                     trace[neighbor[0]][neighbor[1]] = current
                     push(frontier, neighbor)
 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
 
-    return 'NO', 'NO', time.time() - start_time
+    return iter_maze, 'NO', time.time() - start_time
 
 def gbfs(maze, heuristic):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
     f = [[eval(heuristic)([j, i], goal) for i in range(len(maze[0]))] for j in range(len(maze))]
 
-    def push(pq, new_item):
-        i = len(pq) - 1
-        while i >= 0:
-            if f[new_item[0]][new_item[1]] >= f[pq[i][0]][pq[i][1]]:
-                break
-            i -= 1
-        pq.insert(i + 1, new_item)
-
     start_time = time.time()
     while len(frontier) > 0:
         current = frontier.pop(0)
@@ -290,26 +278,32 @@ def gbfs(maze, heuristic):
             iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
             return iter_maze, path, time.time() - start_time
 
+        temp_dis = 1000000
+        least_neighbor = None
         for neighbor in get_neighbors(current, maze):
-            #if neighbor is not visited and not a wall
             if neighbor not in visited and neighbor not in frontier and maze[neighbor[0]][neighbor[1]] != 'x':
-                push(frontier, neighbor)
-                trace[neighbor[0]][neighbor[1]] = current
+                if f[neighbor[0]][neighbor[1]] < temp_dis:
+                    temp_dis = f[neighbor[0]][neighbor[1]]
+                    least_neighbor = neighbor
+        if least_neighbor is not None:
+            frontier.append(least_neighbor)
+            trace[least_neighbor[0]][least_neighbor[1]] = current
 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
     
-    return 'NO', 'NO', time.time() - start_time
+    return iter_maze, 'NO', time.time() - start_time
 
 def astar(maze, heuristic):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
-    g = [[0 for i in range(len(maze[0]))] for j in range(len(maze))]
+    g = np.array([[0 for i in range(len(maze[0]))] for j in range(len(maze))])
     g[start[0]][start[1]] = 0
-    h = [[eval(heuristic)([j, i], goal) for i in range(len(maze[0]))] for j in range(len(maze))]
+    h = np.array([[eval(heuristic)([j, i], goal) for i in range(len(maze[0]))] for j in range(len(maze))])
+    f = g + h
 
     def push(pq, new_item):
         i = len(pq) - 1
         while i >= 0:
-            if g[new_item[0]][new_item[1]] + h[new_item[0]][new_item[1]] >= g[pq[i][0]][pq[i][1]] + h[pq[i][0]][pq[i][1]]:
+            if f[new_item[0], new_item[1]] >= f[pq[i][0], pq[i][1]]:
                 break
             i -= 1
         pq.insert(i + 1, new_item)
@@ -326,14 +320,21 @@ def astar(maze, heuristic):
 
         for neighbor in get_neighbors(current, maze):
             #if neighbor is not visited and not a wall
-            if neighbor not in visited and neighbor not in frontier and maze[neighbor[0]][neighbor[1]] != 'x':
-                g[neighbor[0]][neighbor[1]] = g[current[0]][current[1]] + 1
-                push(frontier, neighbor)
-                trace[neighbor[0]][neighbor[1]] = current
+            if neighbor not in visited and maze[neighbor[0]][neighbor[1]] != 'x':
+                temp_g = g[current[0]][current[1]] + 1
+                if neighbor in frontier:
+                    if temp_g + h[neighbor[0]][neighbor[1]] < f[neighbor[0], neighbor[1]]:
+                        f[neighbor[0], neighbor[1]] = temp_g + h[neighbor[0], neighbor[1]]
+                        trace[neighbor[0], neighbor[1]] = current
+                else:
+                    f[neighbor[0], neighbor[1]] = temp_g + h[neighbor[0], neighbor[1]]
+                    trace[neighbor[0]][neighbor[1]] = current
+                    push(frontier, neighbor)
+                    
                 
         iter_maze.append(update_maze(maze, frontier, visited, path, start, goal))
     
-    return 'NO', 'NO', time.time() - start_time
+    return iter_maze, 'NO', time.time() - start_time
 
 def main(algo, heuristic = None):
     if algo in no_info_search_algo or algo in info_search_algo:
@@ -350,7 +351,7 @@ def main(algo, heuristic = None):
                 if algo in no_info_search_algo:
                     iter_maze, path, exe_time = eval(algo)(maze)
 
-                    if iter_maze != 'NO':
+                    if path != 'NO':
                         save_maze(iter_maze[-1], len(path), exe_time,output_folder, algo + '.jpg', algo)
                         save_cost(len(path), output_folder, algo + '.txt')
                         results.append(f'{len(path)} steps - {exe_time:.2f}s')
@@ -367,7 +368,7 @@ def main(algo, heuristic = None):
                         return
                     else:
                         iter_maze, path, exe_time = eval(algo)(maze, heuristic)
-                        if iter_maze != 'NO':
+                        if path != 'NO':
                             save_maze(iter_maze[-1], len(path), exe_time, output_folder, algo + '_' + heuristic + '.jpg', algo, ' with ' + heuristic)                            
                             save_cost(len(path), output_folder, algo + '_' + heuristic + '.txt')               
                             results.append(f'{len(path)} steps - {exe_time:.2f}s')
