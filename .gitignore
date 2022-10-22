@@ -1,6 +1,7 @@
 *.jpg
 /.ipynb_checkpoints
 /output
-source/draft.ipynb
 source/table.csv
 *.docx
+source/table1.csv
+source/chart.ipynb

@@ -177,6 +177,34 @@ def write_to_table(algo, h, results):
             f.write(',{}'.format(res))
         f.write('\n')
 
+def video_save(iter_maze, folder_name, file_name):
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+    def init():
+        encoded_maze = [[encode_char(x) for x in line] for line in iter_maze[0]]
+        im.set_data(encoded_maze)
+        return im
+
+    def imaze(i):
+        encoded_maze = [[encode_char(x) for x in line] for line in iter_maze[i]]
+        im.set_data(encoded_maze)
+        return im
+
+    fig = plt.figure()
+
+    encoded_maze = [[encode_char(x) for x in line] for line in iter_maze[0]]
+    im = plt.imshow(encoded_maze, cmap = 'rainbow')
+
+    plt.xticks(color = 'w')
+    plt.yticks(color = 'w')
+    plt.tick_params(bottom = False, left = False)
+
+    anim = animation.FuncAnimation(fig, func = imaze, init_func = init, frames = range(1, len(iter_maze)), interval = 50, repeat = False)
+
+    writervideo = animation.FFMpegWriter(fps=20)
+    anim.save(f'{folder_name}/{file_name}.mp4', writer = writervideo)
+
 def dfs(maze):
     start, goal, frontier, visited, path, trace, iter_maze = init_search(maze)
 
