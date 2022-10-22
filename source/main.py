@@ -201,9 +201,9 @@ def save_video(iter_maze, folder_name, file_name):
     plt.yticks(color = 'w')
     plt.tick_params(bottom = False, left = False)
 
-    anim = animation.FuncAnimation(fig, func = imaze, init_func = init, frames = range(1, len(iter_maze)), interval = 50, repeat = False)
+    anim = animation.FuncAnimation(fig, func = imaze, init_func = init, frames = range(1, len(iter_maze)), interval = 20, repeat = False)
 
-    writervideo = animation.FFMpegWriter(fps=20)
+    writervideo = animation.FFMpegWriter(fps=50)
     anim.save(f'{folder_name}/{file_name}', writer = writervideo)
 
 def dfs(maze):
@@ -403,7 +403,7 @@ def main(algo, heuristic = None):
                             save_cost(len(path), output_folder, algo + '_' + heuristic[:3] + '.txt')               
                             results.append(f'{len(path)} steps - {exe_time:.2f}s')
                         else: 
-                            save_cost('NO', output_folder, algo + '_' + heuristic + '.txt')
+                            save_cost('NO', output_folder, algo + '_' + heuristic[:3] + '.txt')
                             results.append(f'NO - {exe_time:.2f}s')
                 else: 
                     print(algo + ' algorithm is not supported (dfs, bfs, ucs, gfbs, astar are expected')
