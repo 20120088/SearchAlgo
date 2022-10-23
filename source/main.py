@@ -378,10 +378,10 @@ def main(algo, heuristic = None):
                 
                 if algo in no_info_search_algo:
                     iter_maze, path, exe_time = eval(algo)(maze)
+                    save_video(iter_maze, output_folder, algo + '.mp4')
 
                     if path != 'NO':
                         # save_maze(iter_maze[-1], len(path), exe_time,output_folder, algo + '.jpg', algo)
-                        save_video(iter_maze, output_folder, algo + '.mp4')
                         save_cost(len(path), output_folder, algo + '.txt')
                         results.append(f'{len(path)} steps - {exe_time:.2f}s')
                     else: 
@@ -397,9 +397,9 @@ def main(algo, heuristic = None):
                         return
                     else:
                         iter_maze, path, exe_time = eval(algo)(maze, heuristic)
+                        save_video(iter_maze, output_folder, algo + '_' + heuristic[:3] + '.mp4')
                         if path != 'NO':
                             # save_maze(iter_maze[-1], len(path), exe_time, output_folder, algo + '_' + heuristic + '.jpg', algo, ' with ' + heuristic)                            
-                            save_video(iter_maze, output_folder, algo + '_' + heuristic[:3] + '.mp4')
                             save_cost(len(path), output_folder, algo + '_' + heuristic[:3] + '.txt')               
                             results.append(f'{len(path)} steps - {exe_time:.2f}s')
                         else: 
