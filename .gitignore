@@ -5,3 +5,4 @@ source/table.csv
 *.docx
 source/table1.csv
 source/chart.ipynb
+*.pdf

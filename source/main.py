@@ -133,11 +133,6 @@ def save_maze(maze, step, exe_time, folder_name, file_name, algo, heuristic = ''
     encoded_maze = [list(map(encode_char, line)) for line in maze]
     upscaled_maze = upscale(encoded_maze, 100)
 
-    # plt.xticks(color = 'w')
-    # plt.yticks(color = 'w')
-    # plt.tick_params(bottom = False, left = False)
-    # plt.title('{}{}\n{} steps, {:.2f} seconds'.format(algo, heuristic, step, exe_time))
-
     plt.imsave(folder_name + '/' + file_name, upscaled_maze, cmap = 'rainbow')
 
 def save_cost(cost, folder_name, file_name):
